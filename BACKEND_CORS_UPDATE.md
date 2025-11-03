@@ -109,10 +109,10 @@ Look for:
 ### Test with curl:
 
 ```bash
-curl -H "Origin: https://cascade-erp.in" \
+curl -H "Origin: https://www.cascade-erp.in" \
      -H "Access-Control-Request-Method: GET" \
      -X OPTIONS \
-     http://3.107.223.34:3000/api/health \
+     https://api.cascade-erp.in/api/health \
      -v
 ```
 

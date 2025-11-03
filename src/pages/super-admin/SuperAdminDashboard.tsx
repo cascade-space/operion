@@ -18,6 +18,7 @@ import { useNavigate } from 'react-router-dom';
 import { factoryService } from '@/services/api';
 import { Factory as FactoryType } from '@/types';
 import { toast } from '@/hooks/use-toast';
+import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
 
 const SuperAdminDashboard = () => {
   const navigate = useNavigate();
@@ -107,8 +108,11 @@ const SuperAdminDashboard = () => {
 
   return (
     <Layout>
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="space-y-6">
+        <PWAInstallPrompt />
+        
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -363,6 +367,7 @@ const SuperAdminDashboard = () => {
           <h3 className="font-semibold">System Settings</h3>
           <p className="text-sm text-muted-foreground">Configure global settings</p>
         </Card>
+      </div>
       </div>
     </Layout>
   );

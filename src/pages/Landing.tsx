@@ -2,7 +2,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { InstallPWAButton } from '@/components/InstallPWAButton';
 import { Factory, Package, Users, BarChart3, Shield, Globe } from 'lucide-react';
 
 const Landing = () => {
@@ -70,11 +69,6 @@ const Landing = () => {
               >
                 Login to Existing Account
               </Button>
-              <InstallPWAButton 
-                size="lg" 
-                variant="outline"
-                className="text-lg px-8"
-              />
             </div>
           </div>
         </div>

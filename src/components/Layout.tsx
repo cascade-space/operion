@@ -5,7 +5,6 @@ import { useAuthStore } from '@/stores/authStore';
 import { useTenant } from '@/contexts/TenantContext';
 import { useNavigate } from 'react-router-dom';
 import { NetworkStatus } from '@/components/NetworkStatus';
-import { InstallPWAButton } from '@/components/InstallPWAButton';
 import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
@@ -79,11 +78,9 @@ export const Layout: React.FC<LayoutProps> = ({ children, title }) => {
               {title || (user?.role === 'super_admin' ? 'MFMS' : currentFactory?.name || 'MFMS')}
             </h1>
             <NetworkStatus />
-            <InstallPWAButton variant="ghost" size="sm" className="hidden sm:flex" />
           </div>
           
           <div className="flex items-center gap-2">
-            <InstallPWAButton variant="ghost" size="icon" className="sm:hidden" />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="ml-auto h-9 w-9 sm:h-10 sm:w-10">

@@ -2,7 +2,7 @@
   "name": "Operion Factory Management System",
   "short_name": "Operion",
   "description": "Multi-tenant factory management system for production tracking and employee management",
-  "start_url": "/",
+  "start_url": "/pwa-start",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#3b82f6",

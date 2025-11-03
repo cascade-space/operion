@@ -6,7 +6,7 @@ Quick reference checklist for deploying to Vercel with custom domain `cascade-er
 
 - [ ] Code committed to Git repository
 - [ ] Local build successful: `cd operion-75 && npm run build`
-- [ ] Backend running at `http://3.107.223.34:3000/`
+- [ ] Backend running at `https://api.cascade-erp.in`
 - [ ] Vercel account created
 - [ ] GoDaddy account access ready
 
@@ -18,8 +18,8 @@ Quick reference checklist for deploying to Vercel with custom domain `cascade-er
 - [ ] Import Git repository
 - [ ] Set **Root Directory:** `operion-75`
 - [ ] Add environment variables:
-  - [ ] `VITE_API_URL` = `http://3.107.223.34:3000/api`
-  - [ ] `VITE_WS_URL` = `ws://3.107.223.34:3000/ws`
+  - [ ] `VITE_API_URL` = `https://api.cascade-erp.in/api`
+  - [ ] `VITE_WS_URL` = `wss://api.cascade-erp.in/ws`
 - [ ] Deploy project
 - [ ] Note Vercel URL (e.g., `https://your-project.vercel.app`)
 

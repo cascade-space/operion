@@ -7,7 +7,7 @@ This guide walks you through deploying the Operion frontend to Vercel and connec
 - Vercel account (sign up at https://vercel.com)
 - Git repository (GitHub, GitLab, or Bitbucket) with your code
 - GoDaddy account with domain `cascade-erp.in`
-- Backend API running at `http://3.107.223.34:3000/`
+- Backend API running at `https://api.cascade-erp.in`
 
 ## Step 1: Prepare Your Repository
 
@@ -48,8 +48,8 @@ This guide walks you through deploying the Operion frontend to Vercel and connec
 
 5. **Add Environment Variables:**
    Click "Environment Variables" and add:
-   - `VITE_API_URL` = `http://3.107.223.34:3000/api`
-   - `VITE_WS_URL` = `ws://3.107.223.34:3000/ws`
+   - `VITE_API_URL` = `https://api.cascade-erp.in/api`
+   - `VITE_WS_URL` = `wss://api.cascade-erp.in/ws`
    
    **Important:** Select "Production", "Preview", and "Development" environments for each variable.
 
@@ -142,12 +142,12 @@ Once your domain is connected and SSL is active:
 
 1. **Go to Vercel Dashboard → Your Project → Settings → Environment Variables**
 
-2. **Update Environment Variables (optional for HTTPS):**
-   If you want to use HTTPS for API calls (recommended), update:
-   - `VITE_API_URL` = `https://3.107.223.34:3000/api` (if backend supports HTTPS)
-   - `VITE_WS_URL` = `wss://3.107.223.34:3000/ws` (if backend supports WSS)
+2. **Update Environment Variables:**
+   Ensure these are set for HTTPS API calls:
+   - `VITE_API_URL` = `https://api.cascade-erp.in/api`
+   - `VITE_WS_URL` = `wss://api.cascade-erp.in/ws`
 
-   **Note:** If your backend doesn't have SSL, keep HTTP/WS. Vercel frontend will use HTTPS automatically.
+   **Note:** HTTPS/WSS is required when frontend is served over HTTPS to avoid Mixed Content errors.
 
 3. **Redeploy:**
    - Go to "Deployments" tab
@@ -209,11 +209,11 @@ Once your domain is connected and SSL is active:
 4. **Test API Connection:**
    - Try logging in
    - Check Network tab in DevTools
-   - Verify requests go to `http://3.107.223.34:3000/api`
+   - Verify requests go to `https://api.cascade-erp.in/api`
 
 5. **Test WebSocket:**
    - Check if real-time features work
-   - Verify WebSocket connects to `ws://3.107.223.34:3000/ws`
+   - Verify WebSocket connects to `wss://api.cascade-erp.in/ws`
 
 ## Troubleshooting
 
@@ -259,10 +259,10 @@ Once your domain is connected and SSL is active:
 
 3. **Test with curl:**
    ```bash
-   curl -H "Origin: https://cascade-erp.in" \
+   curl -H "Origin: https://www.cascade-erp.in" \
         -H "Access-Control-Request-Method: GET" \
         -X OPTIONS \
-        http://3.107.223.34:3000/api/health
+        https://api.cascade-erp.in/api/health
    ```
 
 ### Frontend shows blank page
@@ -282,7 +282,7 @@ Once your domain is connected and SSL is active:
 
 1. **Check backend is accessible:**
    ```bash
-   curl http://3.107.223.34:3000/health
+   curl https://api.cascade-erp.in/health
    ```
 
 2. **Verify backend CORS includes frontend domain:**

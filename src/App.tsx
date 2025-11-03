@@ -55,6 +55,9 @@ import WorkEntry from "./pages/employee/WorkEntry";
 import EmployeePerformance from "./pages/employee/EmployeePerformance";
 import EmployeeAttendance from "./pages/employee/EmployeeAttendance";
 
+// PWA Start Page
+import PWAStart from "./pages/PWAStart";
+
 const App = () => {
   const { isAuthenticated, user, initializeAuth, setDeviceId, getDeviceId } = useAuthStore();
 
@@ -104,6 +107,7 @@ const App = () => {
             <Routes>
               {/* Public Routes */}
               <Route path="/" element={<Landing />} />
+              <Route path="/pwa-start" element={<PWAStart />} />
               <Route path="/login" element={<Login />} />
                           <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
