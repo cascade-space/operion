@@ -258,7 +258,11 @@ class ApiClient {
         // Handle response errors
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
-          console.error('❌ API Error Response:', errorData);
+          
+          // Only log non-500 errors to reduce console noise during backend issues
+          if (response.status !== 500) {
+            console.error('❌ API Error Response:', errorData);
+          }
           
           // Don't retry on authentication errors
           if (response.status === 401 || response.status === 403) {

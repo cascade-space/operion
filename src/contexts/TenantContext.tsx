@@ -54,8 +54,11 @@ export const TenantProvider: React.FC<TenantProviderProps> = ({ children }) => {
       } else {
         setCurrentFactory(null);
       }
-    } catch (error) {
-      console.error('❌ Failed to load factory:', error);
+    } catch (error: any) {
+      // Only log non-500 errors to reduce console noise during backend issues
+      if (error?.response?.status !== 500) {
+        console.error('Failed to load factory:', error);
+      }
       setCurrentFactory(null);
     } finally {
       setIsLoading(false);

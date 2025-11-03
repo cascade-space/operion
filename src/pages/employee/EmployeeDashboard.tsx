@@ -204,26 +204,55 @@ export default function EmployeeDashboard() {
     }
 
     setLoading(true);
+    setError(null);
     try {
       // Load processes for the factory - employees can work on any process
-      const processesResponse = await processService.getProcesses();
-      const allProcesses = 'data' in processesResponse ? processesResponse.data : processesResponse;
-      const processesArray = Array.isArray(allProcesses) ? allProcesses : [];
+      let processesArray: Process[] = [];
+      try {
+        const processesResponse = await processService.getProcesses();
+        const allProcesses = 'data' in processesResponse ? processesResponse.data : processesResponse;
+        processesArray = Array.isArray(allProcesses) ? allProcesses : [];
+      } catch (error: any) {
+        // Handle API errors gracefully - don't spam console
+        if (error?.response?.status === 500) {
+          console.warn('Backend error loading processes - server may be restarting');
+          setError('Unable to connect to server. Please refresh the page or contact support.');
+        } else {
+          console.error('Failed to load processes:', error);
+        }
+        // Continue with empty array - allow user to still see dashboard
+      }
       
       if (processesArray.length > 0) {
         setProcesses(processesArray);
         
         // Load machines
-        const machinesResponse = await machineService.getMachines();
-        const allMachines = 'data' in machinesResponse ? machinesResponse.data : machinesResponse;
-        const machinesArray = Array.isArray(allMachines) ? allMachines : [];
-        setMachines(machinesArray);
+        let machinesArray: Machine[] = [];
+        try {
+          const machinesResponse = await machineService.getMachines();
+          const allMachines = 'data' in machinesResponse ? machinesResponse.data : machinesResponse;
+          machinesArray = Array.isArray(allMachines) ? allMachines : [];
+          setMachines(machinesArray);
+        } catch (error: any) {
+          if (error?.response?.status !== 500) {
+            console.error('Failed to load machines:', error);
+          }
+          setMachines([]);
+        }
         
         // Load products
-        const productsResponse = await productService.getProducts();
-        const allProducts = 'data' in productsResponse ? productsResponse.data : productsResponse;
-        const productsArray = Array.isArray(allProducts) ? allProducts : [];
-        setProducts(productsArray);
+        let productsArray: Product[] = [];
+        try {
+          const productsResponse = await productService.getProducts();
+          const allProducts = 'data' in productsResponse ? productsResponse.data : productsResponse;
+          productsArray = Array.isArray(allProducts) ? allProducts : [];
+          setProducts(productsArray);
+        } catch (error: any) {
+          if (error?.response?.status !== 500) {
+            console.error('Failed to load products:', error);
+          }
+          setProducts([]);
+        }
         
         // Set default selections only if no saved selections exist
         // The restoration logic will be handled by the useEffect hooks
@@ -318,9 +347,14 @@ export default function EmployeeDashboard() {
         // No processes available
         setError('No processes available. Please contact your supervisor.');
       }
-    } catch (error) {
+    } catch (error: any) {
       // Failed to load dashboard data
-      setError('Failed to load dashboard data. Please try again.');
+      if (error?.response?.status === 500) {
+        setError('Server error. Please refresh the page or contact support if the issue persists.');
+      } else {
+        setError('Failed to load dashboard data. Please try again.');
+      }
+      console.error('Dashboard data loading error:', error);
     } finally {
       setLoading(false);
     }
