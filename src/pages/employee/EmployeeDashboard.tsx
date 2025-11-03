@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { Layout } from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -53,7 +53,7 @@ export default function EmployeeDashboard() {
   const [rejectedQuantity, setRejectedQuantity] = useState('');
   const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
-  const [cameraVideo, setCameraVideo] = useState<HTMLVideoElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
 
   const [loading, setLoading] = useState(false);
@@ -724,8 +724,16 @@ export default function EmployeeDashboard() {
   };
 
   const handleCapturePhoto = () => {
-    if (!cameraVideo || !cameraStream) {
+    if (!videoRef.current || !cameraStream) {
       toast.error('Camera not ready. Please try again.');
+      return;
+    }
+
+    const video = videoRef.current;
+
+    // Check if video is ready
+    if (video.videoWidth === 0 || video.videoHeight === 0) {
+      toast.error('Camera preview not ready. Please wait a moment and try again.');
       return;
     }
 
@@ -740,11 +748,11 @@ export default function EmployeeDashboard() {
       }
 
       // Set canvas dimensions to match video
-      canvas.width = cameraVideo.videoWidth;
-      canvas.height = cameraVideo.videoHeight;
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
 
       // Draw video frame to canvas
-      context.drawImage(cameraVideo, 0, 0, canvas.width, canvas.height);
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
       // Convert canvas to base64 image
       const photoDataUrl = canvas.toDataURL('image/jpeg', 0.8);
@@ -767,67 +775,65 @@ export default function EmployeeDashboard() {
       cameraStream.getTracks().forEach(track => track.stop());
       setCameraStream(null);
     }
-    if (cameraVideo) {
-      document.body.removeChild(cameraVideo);
-      setCameraVideo(null);
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
     }
     setIsCameraOpen(false);
   };
 
-  // Handle camera video element when camera is opened
+  // Handle video stream attachment and play when camera opens
   useEffect(() => {
-    if (isCameraOpen && cameraStream && !cameraVideo) {
-      const video = document.createElement('video');
-      video.style.position = 'fixed';
-      video.style.top = '0';
-      video.style.left = '0';
-      video.style.width = '100%';
-      video.style.height = '100%';
-      video.style.objectFit = 'cover';
-      video.style.zIndex = '9999';
-      video.style.backgroundColor = 'black';
-      video.autoplay = true;
-      video.muted = true;
-      video.playsInline = true;
-      video.controls = false;
-      video.loop = false;
-      
-      // Add to DOM first
-      document.body.appendChild(video);
-      setCameraVideo(video);
-      
-      // Then set the stream
+    if (!isCameraOpen || !cameraStream) {
+      return;
+    }
+
+    // Small delay to ensure video element is mounted
+    const timeoutId = setTimeout(() => {
+      const video = videoRef.current;
+      if (!video) {
+        console.warn('Video element not found when trying to attach stream');
+        return;
+      }
+
+      // Set stream to video element
       video.srcObject = cameraStream;
       
-      // Wait for the video to be ready
-      video.onloadedmetadata = () => {
-        video.play().catch(error => {
+      // Wait for metadata to load then play
+      const handleLoadedMetadata = async () => {
+        try {
+          await video.play();
+        } catch (error) {
           console.error('Video play error:', error);
-        });
-      };
-      
-      video.oncanplay = () => {
-        if (video.paused) {
-          video.play().catch(error => {
-            console.error('Video play error on canplay:', error);
-          });
+          // Try again after a short delay
+          setTimeout(async () => {
+            try {
+              await video.play();
+            } catch (retryError) {
+              console.error('Video play retry error:', retryError);
+              toast.error('Failed to start camera preview. Please try again.');
+            }
+          }, 300);
         }
       };
+
+      video.onloadedmetadata = handleLoadedMetadata;
       
+      // If metadata is already loaded, try to play immediately
+      if (video.readyState >= 1) {
+        handleLoadedMetadata();
+      }
+
+      // Handle video errors
       video.onerror = (error) => {
-        console.error('Video error:', error);
+        console.error('Video element error:', error);
+        toast.error('Camera preview error. Please try again.');
       };
-      
-      // Force play after a short delay
-      setTimeout(() => {
-        if (video.paused && video.readyState >= 2) {
-          video.play().catch(error => {
-            console.error('Forced video play error:', error);
-          });
-        }
-      }, 500);
-    }
-  }, [isCameraOpen, cameraStream, cameraVideo]);
+    }, 100);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [isCameraOpen, cameraStream]);
 
   // Cleanup camera on component unmount
   useEffect(() => {
@@ -835,11 +841,11 @@ export default function EmployeeDashboard() {
       if (cameraStream) {
         cameraStream.getTracks().forEach(track => track.stop());
       }
-      if (cameraVideo) {
-        document.body.removeChild(cameraVideo);
+      if (videoRef.current) {
+        videoRef.current.srcObject = null;
       }
     };
-  }, [cameraStream, cameraVideo]);
+  }, [cameraStream]);
 
   const handleSubmitProduction = async (e?: React.MouseEvent) => {
     if (e) {
@@ -1682,7 +1688,7 @@ export default function EmployeeDashboard() {
                   <div className="space-y-2">
                     <Label htmlFor="photo-capture">Production Photo (Optional)</Label>
                     <div className="flex gap-2">
-                      {!isCameraOpen ? (
+                      {!isCameraOpen && (
                         <div className="flex gap-2 w-full">
                           <Button 
                             type="button"
@@ -1693,25 +1699,6 @@ export default function EmployeeDashboard() {
                           >
                             <Camera className="h-4 w-4 mr-2" />
                             {capturedPhoto ? 'Retake Photo' : 'Open Camera'}
-                          </Button>
-                        </div>
-                      ) : (
-                        <div className="flex gap-2 w-full">
-                          <Button
-                            type="button"
-                            onClick={handleCapturePhoto}
-                            className="flex-1 bg-green-600 hover:bg-green-700"
-                          >
-                            <Camera className="h-4 w-4 mr-2" />
-                            Capture
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={handleCloseCamera}
-                            className="px-3"
-                          >
-                            <X className="h-4 w-4" />
                           </Button>
                         </div>
                       )}
@@ -1736,9 +1723,54 @@ export default function EmployeeDashboard() {
                       </div>
                     )}
                     {isCameraOpen && (
-                      <div className="mt-2 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                        <div className="text-sm text-blue-800">
-                          📷 Camera is open. Position your device and click "Capture" to take the photo.
+                      <div className="fixed inset-0 z-[9999] bg-black">
+                        <video
+                          ref={videoRef}
+                          autoPlay
+                          playsInline
+                          muted
+                          className="w-full h-full object-cover"
+                          style={{
+                            position: 'fixed',
+                            top: 0,
+                            left: 0,
+                            width: '100vw',
+                            height: '100vh',
+                            objectFit: 'cover',
+                            zIndex: 9999,
+                            backgroundColor: '#000'
+                          }}
+                        />
+                        {/* Camera Controls Overlay */}
+                        <div className="absolute inset-0 z-[10000] flex flex-col justify-between p-4">
+                          {/* Top Bar */}
+                          <div className="flex justify-between items-start">
+                            <div className="bg-black/50 backdrop-blur-sm rounded-lg px-4 py-2">
+                              <p className="text-white text-sm">
+                                📷 Position your device and tap capture
+                              </p>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={handleCloseCamera}
+                              className="bg-black/50 backdrop-blur-sm hover:bg-black/70 text-white"
+                            >
+                              <X className="h-6 w-6" />
+                            </Button>
+                          </div>
+                          {/* Bottom Controls */}
+                          <div className="flex justify-center items-end pb-8">
+                            <Button
+                              type="button"
+                              onClick={handleCapturePhoto}
+                              size="lg"
+                              className="bg-green-600 hover:bg-green-700 text-white rounded-full w-20 h-20 shadow-lg"
+                            >
+                              <Camera className="h-8 w-8" />
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     )}
